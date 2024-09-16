@@ -31,8 +31,8 @@ The following are the generated images at various stages:
 - **32x32 Images** (Step 3, Epoch 20):  
   ![32x32](Results/Step_3_Epoch_20.png)
 
-- **64x64 Images** (Step 4, Epoch 18):  
-  ![64x64](Results/Step_4_Epoch_18.png)
+- **64x64 Images** (Step 4, Epoch 14):  
+  ![64x64](Results/Step_4_Epoch_14.png)
 
 ### How to Run:
 1. Clone the repository:
