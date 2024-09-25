@@ -20,19 +20,19 @@ This repository implements a Progressive GAN (PGAN) trained on the Celeba High Q
 The following are the generated images at various stages:
 
 - **4x4 Images** (Step 0, Epoch 3):  
-  ![4x4](Results/Step_0_Epoch_3.png)
+  ![4x4](Results/Step_0_Epoch_3.jpg)
 
 - **8x8 Images** (Step 1, Epoch 3):  
-  ![8x8](Results/Step_1_Epoch_3.png)
+  ![8x8](Results/Step_1_Epoch_3.jpg)
 
 - **16x16 Images** (Step 2, Epoch 8):  
-  ![16x16](Results/Step_2_Epoch_8.png)
+  ![16x16](Results/Step_2_Epoch_8.jpg)
 
 - **32x32 Images** (Step 3, Epoch 20):  
-  ![32x32](Results/Step_3_Epoch_20.png)
+  ![32x32](Results/Step_3_Epoch_20.jpg)
 
 - **64x64 Images** (Step 4, Epoch 14):  
-  ![64x64](Results/Step_4_Epoch_14.png)
+  ![64x64](Results/Step_4_Epoch_14.jpg)
 
 ### How to Run:
 1. Clone the repository:
