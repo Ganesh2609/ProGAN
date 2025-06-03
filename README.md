@@ -1,42 +1,153 @@
-# Progressive GAN - Celeba High Quality Dataset
+# Progressive GAN - CelebA High Quality Dataset
 
-This repository implements a Progressive GAN (PGAN) trained on the Celeba High Quality dataset. PGAN is designed to generate images starting from a small resolution (4x4) and progressively increase the resolution up to 1024x1024. This approach ensures stable training, allowing the model to generate increasingly detailed images as the resolution grows.
+A PyTorch implementation of Progressive GAN (ProGAN) trained on the CelebA High Quality dataset. This implementation generates photorealistic face images by progressively increasing resolution from 4x4 to 1024x1024 pixels, ensuring stable training and high-quality output.
 
-### Model Architecture
+## Theory
 
-**Generator:**
-- The generator begins by creating low-resolution images, starting at 4x4 pixels. It then progressively adds more layers that upsample the image to higher resolutions (8x8, 16x16, 32x32, and finally 1024x1024).
-- **Weight-scaled convolutional layers** are used to stabilize the training process, ensuring the model learns efficiently across different resolutions.
-- **Pixel-wise normalization** is applied after each layer to normalize the activations, preventing large variations in pixel values and improving convergence.
-- The generator introduces new layers at each step to increase the image resolution while maintaining coherence in the generated images.
+**Progressive GAN** revolutionizes GAN training by starting with low-resolution images and progressively adding layers to increase resolution. This approach provides several key advantages:
 
-**Discriminator:**
-- The discriminator starts at the final resolution (1024x1024) and progressively downsamples the input image to smaller sizes, mirroring the generator's upsampling process.
-- The discriminator uses **average pooling** to downsample images and includes **fade-in layers** to smoothly transition from one resolution to another, improving stability during training.
-- It also includes a **minibatch standard deviation layer** towards the end, which helps detect mode collapse by encouraging the discriminator to consider diversity in the generated samples.
+- **Stable Training**: Starting small allows the network to learn basic features before tackling complex details
+- **Faster Convergence**: Progressive training is more efficient than training high-resolution GANs from scratch
+- **Better Quality**: The progressive approach reduces mode collapse and improves final image quality
 
-### Results
+### Architecture Overview
 
-The following are the generated images at various stages:
+**Generator Architecture:**
+- Begins with a 4x4 pixel image generation from random noise (512-dimensional latent vector)
+- Uses **Weight-Scaled Convolutions (WSConv2d)** for training stability
+- Implements **Pixel-wise Normalization** instead of batch normalization to prevent covariate shift
+- Progressively adds upsampling layers to reach target resolutions: 4x4 → 8x8 → 16x16 → 32x32 → 64x64 → 128x128 → 256x256 → 512x512 → 1024x1024
+- **Fade-in mechanism** smoothly transitions between resolution steps using alpha blending
 
-- **4x4 Images** (Step 0, Epoch 3):  
-  ![4x4](Results/Step_0_Epoch_3.jpg)
+**Discriminator Architecture:**
+- Mirrors the generator but works in reverse (1024x1024 → 4x4)
+- Uses **Average Pooling** for downsampling operations
+- Implements **Minibatch Standard Deviation** layer to encourage diversity and prevent mode collapse
+- **Weight-scaled convolutions** maintain training stability across all resolution steps
+- **Gradient Penalty (WGAN-GP)** loss for improved training dynamics
 
-- **8x8 Images** (Step 1, Epoch 3):  
-  ![8x8](Results/Step_1_Epoch_3.jpg)
+### Key Technical Features
 
-- **16x16 Images** (Step 2, Epoch 8):  
-  ![16x16](Results/Step_2_Epoch_8.jpg)
+- **Weight Scaling**: Normalizes weights at runtime rather than using traditional normalization layers
+- **Progressive Growing**: New layers are gradually faded in using alpha blending (α ∈ [0,1])
+- **Equalized Learning Rate**: All layers learn at similar rates regardless of depth
+- **Minibatch Standard Deviation**: Encourages generator to produce diverse samples
 
-- **32x32 Images** (Step 3, Epoch 20):  
-  ![32x32](Results/Step_3_Epoch_20.jpg)
+## Training Results
 
-- **64x64 Images** (Step 4, Epoch 14):  
-  ![64x64](Results/Step_4_Epoch_14.jpg)
+The model was trained progressively across multiple resolution steps. Below are the generated samples at various training stages:
 
-### How to Run:
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Ganesh2609/ProGAN.git
-   cd ProGAN
-   ```
+### Step 0 - 4x4 Resolution
+**Epoch 1:**
+![4x4 Step 0 Epoch 1](Results/Step_0_Epoch_1.jpg)
+
+**Epoch 2:**
+![4x4 Step 0 Epoch 2](Results/Step_0_Epoch_2.jpg)
+
+**Epoch 3:**
+![4x4 Step 0 Epoch 3](Results/Step_0_Epoch_3.jpg)
+
+### Step 1 - 8x8 Resolution
+**Epoch 1:**
+![8x8 Step 1 Epoch 1](Results/Step_1_Epoch_1.jpg)
+
+**Epoch 2:**
+![8x8 Step 1 Epoch 2](Results/Step_1_Epoch_2.jpg)
+
+**Epoch 3:**
+![8x8 Step 1 Epoch 3](Results/Step_1_Epoch_3.jpg)
+
+### Step 2 - 16x16 Resolution
+**Epoch 1:**
+![16x16 Step 2 Epoch 1](Results/Step_2_Epoch_1.jpg)
+
+**Epoch 2:**
+![16x16 Step 2 Epoch 2](Results/Step_2_Epoch_2.jpg)
+
+**Epoch 3:**
+![16x16 Step 2 Epoch 3](Results/Step_2_Epoch_3.jpg)
+
+**Epoch 4:**
+![16x16 Step 2 Epoch 4](Results/Step_2_Epoch_4.jpg)
+
+**Epoch 5:**
+![16x16 Step 2 Epoch 5](Results/Step_2_Epoch_5.jpg)
+
+## Model Architecture
+
+### Generator
+- **Input**: 512-dimensional noise vector
+- **Output**: RGB images at progressive resolutions
+- **Parameters**: ~23M trainable parameters
+- **Key Components**: WSConv2d layers, PixelNorm, fade-in mechanism
+
+### Discriminator  
+- **Input**: RGB images at various resolutions
+- **Output**: Real/fake classification score
+- **Parameters**: ~25M trainable parameters
+- **Key Components**: WSConv2d layers, MiniBatch Standard Deviation, gradient penalty
+
+## Code Structure
+
+```
+ProGAN/
+├── models.py              # Generator & Discriminator architectures
+├── trainer.py             # Training functions and utilities
+├── training_model.ipynb   # Main training notebook
+├── model_architectures_testing.ipynb  # Architecture testing
+├── Models/                # Saved model weights
+│   ├── first_generator.pth
+│   ├── first_discriminator.pth
+│   ├── second_generator.pth
+│   └── second_discriminator.pth
+└── Results/               # Generated samples and training logs
+    ├── model_loss.json
+    ├── Epoch results.txt
+    └── Step_*_Epoch_*.jpg
+```
+
+## Getting Started
+
+### Requirements
+```bash
+pip install torch torchvision matplotlib tqdm pathlib
+```
+
+### Training
+1. Prepare your dataset in the `CelebaHQ/` directory
+2. Configure hyperparameters in `training_model.ipynb`
+3. Run the training notebook:
+```python
+# Key hyperparameters
+START_STEP = 0  # Starting resolution step
+END_STEP = 8    # Final resolution step (1024x1024)
+LEARNING_RATE = 1e-4
+BATCH_SIZES = [16, 16, 16, 16, 16, 8, 5, 4, 2]  # Per resolution step
+LATENT_DIM = 512
+LAMBDA_GP = 10  # Gradient penalty coefficient
+```
+
+### Inference
+```python
+from models import Generator
+import torch
+
+# Load trained generator
+generator = Generator(in_channels=512, out_channels=3)
+generator.load_state_dict(torch.load('Models/first_generator.pth'))
+
+# Generate samples
+with torch.no_grad():
+    noise = torch.randn(8, 512, 1, 1)
+    generated_images = generator(noise, alpha=1.0, steps=8)
+```
+
+## Training Details
+
+- **Loss Function**: WGAN-GP (Wasserstein GAN with Gradient Penalty)
+- **Optimizer**: Adam (β₁=0.0, β₂=0.99)
+- **Progressive Training**: 10 epochs per resolution step
+- **Fade-in**: Smooth transition between resolution steps using alpha blending
+- **Mixed Precision**: AMP (Automatic Mixed Precision) for faster training
+
+The model demonstrates stable training progression with smooth transitions between resolution steps, producing high-quality facial images that capture fine details and realistic textures.
